@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}ConnectionCommunity | Home{% endblock %}
+
+{% block content %}
+    <h1>Bienvenido, {{ user.username }}!</h1>
+    
+    <p>Tu rol en la comunidad es: {{ user.profile.get_comuna_display|default:"Colaborador Local" }}</p>
+    
+    <h2>💰 Saldo Actual de Créditos de Tiempo (CR): {{ saldo_cr }}</h2>
+    
+    <hr>
+    
+    <a href="{% url 'create_publication' %}">➡️ Publicar mi Servicio/Solicitud</a>
+
+    <hr>
+
+    <h2>💱 Tareas Pendientes: Finalizar Servicios Recibidos</h2>
+    {% for tx in user.transacciones_ofrecidas.filter %}
+        {% if tx.estado == 'PENDIENTE' %}
+            <div style="border: 2px solid orange; padding: 10px; margin-bottom: 10px;">
+                <p><strong>Servicio:</strong> {{ tx.publication.titulo }}</p>
+                <p><strong>Solicitado por:</strong> {{ tx.solicitante.username }}</p>
+                <p>Confirma que el servicio se completó para <strong>RECIBIR 1 CR</strong>.</p>
+                <form method="post" action="{% url 'finalize_transaction' tx.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" style="background-color: orange; color: white;">CONFIRMAR Y RECIBIR PAGO (1 CR)</button>
+                </form>
+                
+                <form method="post" action="{% url 'cancel_transaction' tx.id %}" style="display: inline; margin-left: 10px;">
+                    {% csrf_token %}
+                    <button type="submit" style="background-color: red; color: white;">BORRAR/CANCELAR SOLICITUD</button>
+                </form>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    <hr>
+
+    <h2>Marketplace Local</h2>
+
+    <form method="get" action="{% url 'index' %}">
+        <input type="text" name="q" placeholder="Buscar servicios o habilidades..." value="{{ query|default:'' }}">
+        <button type="submit">Buscar</button>
+    </form>
+
+    {% if publications %}
+        {% if is_geo_sorted %}
+            <h3>Marketplace Local (Ordenado por Cercanía)</h3>
+        {% else %}
+            <h3>Marketplace Local (Ordenado por Fecha)</h3>
+            <p>ℹ️ Añade tu ubicación en tu perfil para ordenar por distancia.</p>
+        {% endif %}
+
+        <h3>Resultados ({{ publications.count }} Anuncios)</h3>
+        {% for pub in publications %}
+            <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                <h4>{{ pub.titulo }} ({{ pub.get_tipo_anuncio_display }})</h4>
+                <p><strong>Habilidad:</strong> {{ pub.skill.nombre }}</p>
+                <p>{{ pub.descripcion }}</p>
+                <p>Publicado por: {{ pub.user.username }}</p>
+                
+                {% if pub.distance_km %}
+                    <p>📍 Distancia: {{ pub.distance_km }} km</p>
+                {% endif %}
+                
+                {% if pub.user != user %}
+                    <form method="post" action="{% url 'start_transaction' pub.id %}">
+                        {% csrf_token %}
+                        <button type="submit" style="background-color: green; color: white;">Solicitar Servicio (Iniciar Intercambio)</button>
+                    </form>
+                {% else %}
+                    <p>➡️ Esta es tu publicación.</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No se encontraron anuncios.</p>
+    {% endif %}
+    <hr>
+
+{% endblock %}

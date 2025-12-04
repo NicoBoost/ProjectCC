@@ -1,0 +1,84 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ConnectionCommunity{% endblock %}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding-top: 70px; }
+        header { 
+            background-color: #007bff; color: white; padding: 10px 20px; 
+            display: flex; justify-content: space-between; align-items: center;
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+        }
+        header a { color: white; text-decoration: none; margin-left: 15px; }
+        header .cr-display { background-color: #28a745; padding: 5px 10px; border-radius: 5px; font-weight: bold; }
+        .container { padding: 20px; }
+        
+        .base-message {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        
+        .msg-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .msg-error   { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .msg-warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .msg-info    { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <a href="{% url 'index' %}">🏠 ConnectionCommunity</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'create_publication' %}">➕ Publicar</a>
+            {% endif %}
+        </div>
+        
+        <div style="display: flex; align-items: center;">
+            {% if user.is_authenticated %}
+                <span class="cr-display">
+                    CR: {{ user.profile.saldo_cr }} 
+                </span>
+                
+                <span style="margin-left: 15px;">Hola, {{ user.username }}!</span>
+                
+                <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" style="background: none; border: none; color: white; cursor: pointer;">
+                        (Cerrar Sesión)
+                    </button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}">Iniciar Sesión</a>
+                <a href="{% url 'register' %}">Registrarse</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <div class="container">
+        
+        {% if messages %}
+            <ul class="messages" style="list-style: none; padding: 0;">
+                {% for message in messages %}
+                    <li class="
+                        base-message
+                        {% if 'success' in message.tags %}msg-success
+                        {% elif 'error' in message.tags %}msg-error
+                        {% elif 'warning' in message.tags %}msg-warning
+                        {% else %}msg-info
+                        {% endif %}
+                    ">
+                        {{ message }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% block content %}
+        {% endblock %}
+    </div>
+
+</body>
+</html>

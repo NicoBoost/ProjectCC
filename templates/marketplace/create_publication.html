@@ -1,0 +1,10 @@
+{% extends "base.html" %} 
+{% block content %}
+    <h2>Publicar un nuevo servicio o solicitud</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Publicar</button>
+    </form>
+    <p><a href="{% url 'index' %}">Volver al inicio</a></p>
+{% endblock %}
